@@ -29,9 +29,22 @@
       </thead>
       <tbody>
         <tr v-for="(task, index) in tasks" :key="index">
-          <td>{{ task.name }}</td>
+          <td>
+            <span :class="{ 'line-through': task.status === 'finished' }">{{
+              task.name
+            }}</span>
+          </td>
           <td @click="modifyStatus(index)">
-            <span class="pointer noselect"> {{ task.status }}</span>
+            <span
+              class="pointer noselect"
+              :class="{
+                'text-danger': task.status === 'to-do',
+                'text-success': task.status === 'finished',
+                'text-warning': task.status === 'in-progress',
+              }"
+            >
+              {{ capitalizeFirstChar(task.status) }}</span
+            >
           </td>
           <td class="text-center">
             <div @click="deleteTask(index)">
@@ -83,16 +96,33 @@ export default {
   },
 
   methods: {
+    capitalizeFirstChar(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
     deleteTask(index) {
       console.log("index==>", index);
       this.tasks.splice(index, 1);
     },
     addTask() {
-      if (this.task.length < 1) {
+      if (this.task.length === 0) {
         alert("Enter task..");
         return;
       }
-      if (!this.isEdit) {
+
+      //수정
+      if (this.editedIndex != null) {
+        this.tasks[this.editedIndex].name = this.task;
+        this.editedIndex = null;
+      } else {
+        this.tasks.push({
+          name: this.task,
+          status: "todo",
+        });
+      }
+
+      this.task = "";
+
+      /* if (!this.isEdit) {
         const newTask = {
           name: this.task,
           status: "to-do",
@@ -104,10 +134,14 @@ export default {
         this.editIndex = null;
         this.isEdit = false;
         this.task = "";
-      }
+      } */
     },
-    modifyStatus(row) {
-      this.tasks.filter((task, index) => {
+    changeStatus(index) {
+      let newIndex = this.statuses.indexOf(this.tasks[index].status);
+      if (++newIndex > 2) newIndex = 0;
+
+      this.tasks[index].status = this.statuses[newIndex];
+      /* this.tasks.filter((task, index) => {
         if (row === index) {
           if (task.status === "to-do") {
             this.tasks[row].status = "in-progress";
@@ -117,7 +151,7 @@ export default {
             this.tasks[row].status = "to-do";
           }
         }
-      });
+      }); */
       /* this.tasks.map((task, index) => {
         if (row === index) {
           if (status === "to-do") {
@@ -135,7 +169,6 @@ export default {
       // /console.log(index, this.tasks[index].name);
       this.task = this.tasks[index].name;
       this.editedIndex = index;
-      this.editedTask = this.tasks[index];
     },
   },
 };
